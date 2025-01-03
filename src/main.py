@@ -42,35 +42,29 @@ def read_tsp_file(file_path):
 
 def bound(path, graph, n):
     total_cost = 0
-    included_edges = set(zip(path[:-1], path[1:]))  # Arestas já incluídas no caminho
-    
-    reverse_edges = {(v, u) for u, v in included_edges}
-    included_edges.update(reverse_edges)
-    
-    for i in range(n):
-        if i in path and i != path[-1]:
-            # Se o vértice já foi visitado (exceto o último), ignora
-            continue
-
-        neighbors = []
-        for j in range(n):
-            if i != j:
-                # Verifica se a aresta (i, j) não está bloqueada e coleta os custos
-                if (i, j) not in included_edges:
-                    neighbors.append(graph[i][j])
-
-        # Ordena os custos das arestas incidentes e soma os menores dois
-        neighbors = sorted(neighbors)
-        if len(neighbors) > 1:
-            total_cost += neighbors[0] + neighbors[1]
-        elif neighbors:
-            total_cost += neighbors[0]
-
-    # Adiciona o custo das arestas já incluídas no caminho
-    for u, v in included_edges:
+    visited_edges = [[False] * n for _ in range(n)]
+    for u, v in zip(path[:-1], path[1:]):
+        visited_edges[u][v] = visited_edges[v][u] = True
         total_cost += graph[u][v]
 
-    # print(math.ceil(total_cost / 2), path)
+    for i in range(n):
+        if i in path and i != path[-1]:
+            continue
+
+        min1, min2 = math.inf, math.inf
+        for j in range(n):
+            if i != j and not visited_edges[i][j]:
+                cost = graph[i][j]
+                if cost < min1:
+                    min1, min2 = cost, min1
+                elif cost < min2:
+                    min2 = cost
+
+        if min1 < math.inf:
+            total_cost += min1
+        if min2 < math.inf:
+            total_cost += min2
+
     return math.ceil(total_cost / 2)
 
 
@@ -88,7 +82,7 @@ def bnb_tsp(graph, n):
             if best > node_cost:
                 best = node_cost
                 sol = node_path
-                print(best, sol, node_level)
+                # print(best, sol, node_level)
         elif node_bound < best:
             if node_level < n-1:
                 for k in range(1, n):
@@ -134,6 +128,6 @@ if __name__ == "__main__":
     # Número de nós
     n = len(G.nodes)
     solution, cost = bnb_tsp(A, n)
-    # print("Melhor caminho:", solution)
-    # print("Custo mínimo:", cost)
+    print("Melhor caminho:", solution)
+    print("Custo mínimo:", cost)
 
