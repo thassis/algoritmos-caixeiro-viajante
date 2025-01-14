@@ -1,7 +1,9 @@
 import math
 import heapq
 import tracemalloc
+import networkx as nx
 from collections import deque
+from utils import read_tsp_file
 
 def bound(path, graph, n):
     total_cost = 0
@@ -31,8 +33,12 @@ def bound(path, graph, n):
     return math.ceil(total_cost / 2)
 
 
-def bnb_tsp(graph, n):
+def bnb_tsp(file):
     tracemalloc.start()
+    G = read_tsp_file(file)
+    graph = nx.adjacency_matrix(G).toarray()
+    n = len(G.nodes)
+    del G
     root = (bound([0], graph, n), 0, 0, [0])  # (bound, level, cost, path)
     queue = []
     heapq.heappush(queue, root)
@@ -65,8 +71,11 @@ def bnb_tsp(graph, n):
     tracemalloc.stop()
     return best, path, memory_usage
 
-def bfs_tsp(graph, n):
+def bfs_tsp(file):
     tracemalloc.start()
+    
+    graph = read_tsp_file(file)
+    n = len(graph.nodes)
     queue = deque([(0, 0, [0])])  # (cost, level, path)
     best = math.inf
     path = None

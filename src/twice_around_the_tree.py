@@ -1,8 +1,10 @@
 import networkx as nx
 import tracemalloc
+from utils import read_tsp_file
 
-def approx_tsp_twice_around_the_tree(G):
+def twice_around_the_tree_tsp(file):
     tracemalloc.start()
+    G = read_tsp_file(file)
     root = list(G.nodes())[0]
     
     mst = nx.minimum_spanning_tree(G, algorithm="prim", weight="weight")
