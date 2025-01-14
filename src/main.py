@@ -1,6 +1,6 @@
 import networkx as nx
 import time
-from branch_and_bound import bnb_tsp
+from branch_and_bound import bnb_tsp, bfs_tsp
 from twice_around_the_tree import approx_tsp_twice_around_the_tree
 
 def read_tsp_file(file_path):
