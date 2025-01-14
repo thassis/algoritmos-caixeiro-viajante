@@ -1,7 +1,12 @@
 import networkx as nx
 import time
+import os
+import signal
+from contextlib import contextmanager
+
 from branch_and_bound import bnb_tsp, bfs_tsp
 from twice_around_the_tree import approx_tsp_twice_around_the_tree
+from christofides import christofides_tsp
 
 def read_tsp_file(file_path):
     with open(file_path, 'r') as file:
@@ -41,47 +46,61 @@ def read_tsp_file(file_path):
 
     return G
 
-if __name__ == "__main__":
-    start = time.time()
-    file_name = 'tsp_examples/atest.tsp'
+def process_file(file_name, algorithm):
     G = read_tsp_file(file_name)
-    # Cria um grafo não direcionado
-    # G = nx.Graph()
-
-    # Adiciona as arestas e seus respectivos pesos
-    # edges = [
-    #     (1, 2, 3),
-    #     (1, 3, 1),
-    #     (1, 4, 5),
-    #     (1, 5, 8),
-    #     (2, 4, 7),
-    #     (2, 3, 6),
-    #     (2, 5, 9),
-    #     (3, 4, 4),
-    #     (3, 5, 2),
-    #     (4, 5, 3)
-    # ]
-
-    # G.add_weighted_edges_from(edges)
-
-    # print("Graph constructed with nodes:", G.nodes())
-    # print("Graph constructed with edges:", G.edges(data=True))
-    
-    A = nx.adjacency_matrix(G).toarray()
-    # Número de nós
-    n = len(G.nodes)
-    solution, cost = bnb_tsp(A, n)
+    solution = None
+    cost = None
+    start = time.time()
+    if algorithm == 'bnb':
+        A = nx.adjacency_matrix(G).toarray()
+        n = len(G.nodes)
+        solution, cost, memory = bnb_tsp(A, n)
+    elif algorithm == 'christofides':
+        solution, cost, memory = christofides_tsp(G)
+    elif algorithm == 'bfs':
+        solution, cost, memory = bfs_tsp(G)
+    else:
+        solution, cost, memory = approx_tsp_twice_around_the_tree(G)
     end = time.time()
-    print("Melhor caminho:", solution)
-    print("Custo mínimo:", cost)
-    print("Tempo de execução:", end - start, "segundos")
-    print("Tempo de execução:", (end - start) / 60, "minutos")
-    solution, cost = approx_tsp_twice_around_the_tree(G)
-    end = time.time()
-    print("Melhor caminho:", solution)
-    print("Custo mínimo:", cost)
-    print("Tempo de execução:", end - start, "segundos")
-    print("Tempo de execução:", (end - start) / 60, "minutos")
-    
-    
+    return solution, cost, end - start, memory
 
+class TimeoutException(Exception):
+    pass
+
+def handle_timeout(signum, frame):
+    raise TimeoutException
+
+@contextmanager
+def time_limit(seconds):
+    signal.signal(signal.SIGALRM, handle_timeout)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+
+if __name__ == "__main__":
+    algorithm = 'christofides'  # 'christofides', 'bfs', 'bnb', 'twice'.
+    tsp_folder = 'tsp_examples'
+    out_folder = f'out_{algorithm}'
+    os.makedirs(out_folder, exist_ok=True)
+
+    for file_name in os.listdir(tsp_folder):
+        if file_name.endswith('.tsp'):
+            file_path = os.path.join(tsp_folder, file_name)
+            out_file_path = os.path.join(out_folder, file_name.replace('.tsp', '.txt'))
+            print(f"Processando {file_name} com {algorithm}")
+            try:
+                with time_limit(10):
+                    solution, cost, exec_time, memory = process_file(file_path, algorithm)
+            except TimeoutException:
+                solution, cost, exec_time, memory = "timeout", None, None, None
+            
+            with open(out_file_path, 'w') as out_file:
+                if solution == "timeout":
+                    out_file.write("timeout\n")
+                else:
+                    out_file.write(f"Melhor caminho: {solution}\n")
+                    out_file.write(f"Custo mínimo: {cost}\n")
+                    out_file.write(f"Tempo de execução: {exec_time} segundos\n")
+                    out_file.write(f"Uso de memória: {memory} bytes\n")

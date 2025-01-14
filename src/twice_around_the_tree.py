@@ -1,6 +1,8 @@
 import networkx as nx
+import tracemalloc
 
 def approx_tsp_twice_around_the_tree(G):
+    tracemalloc.start()
     root = list(G.nodes())[0]
     
     mst = nx.minimum_spanning_tree(G, algorithm="prim", weight="weight")
@@ -14,4 +16,6 @@ def approx_tsp_twice_around_the_tree(G):
         u, v = hamiltonian_cycle[i], hamiltonian_cycle[i + 1]
         total_cost += G[u][v]["weight"]
     
-    return hamiltonian_cycle, total_cost
+    memory_usage, _ = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    return total_cost, hamiltonian_cycle, memory_usage

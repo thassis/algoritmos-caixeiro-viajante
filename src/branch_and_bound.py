@@ -1,5 +1,7 @@
 import math
 import heapq
+import tracemalloc
+from collections import deque
 
 def bound(path, graph, n):
     total_cost = 0
@@ -30,11 +32,12 @@ def bound(path, graph, n):
 
 
 def bnb_tsp(graph, n):
+    tracemalloc.start()
     root = (bound([0], graph, n), 0, 0, [0])  # (bound, level, cost, path)
     queue = []
     heapq.heappush(queue, root)
     best = math.inf
-    sol = None
+    path = None
     
     while queue:
         node = heapq.heappop(queue)
@@ -42,8 +45,8 @@ def bnb_tsp(graph, n):
         if node_level > n-1:
             if best > node_cost:
                 best = node_cost
-                sol = node_path
-                # print(best, sol, node_level)
+                path = node_path
+                # print(best, path, node_level)
         elif node_bound < best:
             if node_level < n-1:
                 for k in range(1, n):
@@ -58,4 +61,34 @@ def bnb_tsp(graph, n):
                 if new_bound < best and all(i in node_path for i in range(n)):
                     heapq.heappush(queue, (new_bound, node_level + 1, node_cost + graph[node_path[-1]][0], new_path))
     
-    return best, sol
+    memory_usage, _ = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    return best, path, memory_usage
+
+def bfs_tsp(graph, n):
+    tracemalloc.start()
+    queue = deque([(0, 0, [0])])  # (cost, level, path)
+    best = math.inf
+    path = None
+
+    while queue:
+        cost, level, path = queue.popleft()
+
+        if level == n - 1:
+            # Check if we can return to the starting node to complete the cycle
+            if graph[path[-1]][0] != math.inf:
+                total_cost = cost + graph[path[-1]][0]
+                if total_cost < best:
+                    best = total_cost
+                    path = path + [0]
+        else:
+            # Expand all possible next nodes that are not in the path
+            for next_node in range(1, n):
+                if next_node not in path and graph[path[-1]][next_node] != math.inf:
+                    new_cost = cost + graph[path[-1]][next_node]
+                    new_path = path + [next_node]
+                    queue.append((new_cost, level + 1, new_path))
+ 
+    memory_usage, _ = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    return best, path, memory_usage
