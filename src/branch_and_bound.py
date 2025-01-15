@@ -1,9 +1,13 @@
 import math
 import heapq
 import tracemalloc
+import logging
+import time
 import networkx as nx
 from collections import deque
 from utils import read_tsp_file
+# Configuração do logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(message)s')
 
 def bound(path, graph, n):
     total_cost = 0
@@ -32,10 +36,25 @@ def bound(path, graph, n):
 
     return math.ceil(total_cost / 2)
 
-
 def bnb_tsp(file):
     tracemalloc.start()
+    start_time = time.time()
+    
     G = read_tsp_file(file)
+    # G = nx.Graph()
+    # edges = [
+    #     (1, 2, 3),
+    #     (1, 3, 1),
+    #     (1, 4, 5),
+    #     (1, 5, 8),
+    #     (2, 4, 7),
+    #     (2, 3, 6),
+    #     (2, 5, 9),
+    #     (3, 4, 4),
+    #     (3, 5, 2),
+    #     (4, 5, 3)
+    # ]
+    # G.add_weighted_edges_from(edges)
     graph = nx.adjacency_matrix(G).toarray()
     n = len(G.nodes)
     del G
@@ -48,27 +67,36 @@ def bnb_tsp(file):
     while queue:
         node = heapq.heappop(queue)
         node_bound, node_level, node_cost, node_path = node
-        if node_level > n-1:
+
+        if node_level > n - 1:
             if best > node_cost:
                 best = node_cost
                 path = node_path
-                # print(best, path, node_level)
+                logging.debug(f"Solução encontrada com custo {best}, caminho {path}")
         elif node_bound < best:
-            if node_level < n-1:
+            if node_level < n - 1:
                 for k in range(1, n):
                     if k not in node_path and graph[node_path[-1]][k] != math.inf:
                         new_path = node_path + [k]
                         new_bound = bound(new_path, graph, n)
                         if new_bound < best:
+                            # logging.debug(f"Explorando caminho {new_path} com novo limite inferior {new_bound}")
                             heapq.heappush(queue, (new_bound, node_level + 1, node_cost + graph[node_path[-1]][k], new_path))
             elif graph[node_path[-1]][0] != math.inf:
                 new_path = node_path + [0]
                 new_bound = bound(new_path, graph, n)
                 if new_bound < best and all(i in node_path for i in range(n)):
+                    # logging.debug(f"Explorando caminho completo {new_path} com novo limite inferior {new_bound}")
                     heapq.heappush(queue, (new_bound, node_level + 1, node_cost + graph[node_path[-1]][0], new_path))
+            else:
+                logging.debug(f"Poda do nó com caminho {node_path} devido ao custo")
+        else:
+            logging.debug(f"Poda do nó com caminho {node_path} devido ao limite inferior")
     
+    elapsed_time = time.time() - start_time
     memory_usage, _ = tracemalloc.get_traced_memory()
     tracemalloc.stop()
+
     return best, path, memory_usage
 
 def bfs_tsp(file):

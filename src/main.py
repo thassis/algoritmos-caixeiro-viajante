@@ -44,8 +44,8 @@ def time_limit(seconds):
         signal.alarm(0)
 
 if __name__ == "__main__":
-    algorithm = 'christofides'  # 'christofides', 'bfs', 'bnb', 'twice'.
-    tsp_folder = 'tsp_examples'
+    algorithm = 'bnb'  # 'christofides', 'bfs', 'bnb', 'twice'.
+    tsp_folder = 'tsp_examples_bnb'
     out_folder = f'out_{algorithm}'
     os.makedirs(out_folder, exist_ok=True)
 
