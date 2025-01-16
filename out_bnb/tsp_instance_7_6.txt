@@ -1,0 +1,4 @@
+Melhor caminho: 2283
+Custo mínimo: [0, 1, 3, 2, 4, 6, 5, 0]
+Tempo de execução: 0.1032264232635498 segundos
+Uso de memória: 42733 bytes

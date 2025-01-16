@@ -1,6 +1,5 @@
 import networkx as nx
 import tracemalloc
-from networkx.algorithms import matching
 from utils import read_tsp_file
 
 def christofides_tsp(file):
