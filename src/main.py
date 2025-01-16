@@ -58,11 +58,11 @@ if __name__ == "__main__":
                 with time_limit(1800):
                     total_cost, path, exec_time, memory = process_file(file_path, algorithm)
             except TimeoutException:
-                total_cost, path, exec_time, memory = "timeout", None, None, None
+                total_cost, path, exec_time, memory = "NA", None, None, None
             
             with open(out_file_path, 'w') as out_file:
-                if total_cost == "timeout":
-                    out_file.write("timeout\n")
+                if total_cost == "NA":
+                    out_file.write("NA\n")
                 else:
                     out_file.write(f"Melhor caminho: {total_cost}\n")
                     out_file.write(f"Custo mínimo: {path}\n")
