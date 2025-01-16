@@ -1,4 +1,5 @@
 import networkx as nx
+import random
 
 def read_tsp_file(file_path):
     with open(file_path, 'r') as file:
@@ -37,3 +38,23 @@ def read_tsp_file(file_path):
             G.add_edge(i, j, weight=distance)
 
     return G
+
+def generate_tsp_instance(name, num_points, file_path):
+    with open(file_path, "w") as file:
+        file.write(f"NAME: {name}\n")
+        file.write("TYPE: TSP\n")
+        file.write(f"COMMENT: {num_points}-city problem\n")
+        file.write(f"DIMENSION: {num_points}\n")
+        file.write("EDGE_WEIGHT_TYPE: EUC_2D\n")
+        file.write("NODE_COORD_SECTION\n")
+        for i in range(num_points):
+            x, y = random.randint(0, 100), random.randint(0, 100)
+            file.write(f"{i} {x} {y}\n")
+        file.write("EOF\n")
+
+def generate_tsp_instances(file_path):
+    dimensions = [5, 10, 11, 12, 15]
+    for instance_number in range(1, 6):
+        dimension = dimensions[instance_number - 1]
+        filename = f"{file_path}/tsp_instance_{dimension}.tsp"
+        generate_tsp_instance(f"instance_{dimension}", dimension, filename)

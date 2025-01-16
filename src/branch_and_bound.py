@@ -99,17 +99,17 @@ def bnb_tsp(file):
 def bfs_tsp(file):
     def dfs_with_bound(path, graph, n, best_cost, best_path):
         current_cost = sum(graph[path[i]][path[i + 1]] for i in range(len(path) - 1))
-        logging.debug(f"Próximo caminho: {path} custo: {current_cost}")
+        # logging.debug(f"Próximo caminho: {path} custo: {current_cost}")
 
         if len(path) == n and graph[path[-1]][0] != math.inf:
             current_cost += graph[path[-1]][0]
-            logging.debug(f"Caminho completo: {path + [0]} | custo: {current_cost}")
+            # logging.debug(f"Caminho completo: {path + [0]} | custo: {current_cost}")
             if current_cost < best_cost:
                 return current_cost, path + [0]
             return best_cost, best_path
 
         current_bound = bound(path, graph, n)
-        logging.debug(f"Caminho: {path} bound: {current_bound}")
+        # logging.debug(f"Caminho: {path} bound: {current_bound}")
 
         if current_bound >= best_cost:
             logging.debug(f"Poda do nó com caminho {path} devido ao limite inferior ({best_cost})")
@@ -119,28 +119,28 @@ def bfs_tsp(file):
             if k not in path and graph[path[-1]][k] != math.inf:
                 new_cost, new_path = dfs_with_bound(path + [k], graph, n, best_cost, best_path)
                 if new_cost < best_cost:
-                    logging.debug(f"Novo melhor caminho: {new_path} com custo: {new_cost}")
+                    # logging.debug(f"Novo melhor caminho: {new_path} com custo: {new_cost}")
                     best_cost, best_path = new_cost, new_path
 
         return best_cost, best_path
 
     tracemalloc.start()
 
-    # G = read_tsp_file(file)
-    G = nx.Graph()
-    edges = [
-        (1, 2, 3),
-        (1, 3, 1),
-        (1, 4, 5),
-        (1, 5, 8),
-        (2, 4, 7),
-        (2, 3, 6),
-        (2, 5, 9),
-        (3, 4, 4),
-        (3, 5, 2),
-        (4, 5, 3)
-    ]
-    G.add_weighted_edges_from(edges)
+    G = read_tsp_file(file)
+    # G = nx.Graph()
+    # edges = [
+    #     (1, 2, 3),
+    #     (1, 3, 1),
+    #     (1, 4, 5),
+    #     (1, 5, 8),
+    #     (2, 4, 7),
+    #     (2, 3, 6),
+    #     (2, 5, 9),
+    #     (3, 4, 4),
+    #     (3, 5, 2),
+    #     (4, 5, 3)
+    # ]
+    # G.add_weighted_edges_from(edges)
     graph = nx.adjacency_matrix(G).toarray()
     n = len(G.nodes)
     del G
