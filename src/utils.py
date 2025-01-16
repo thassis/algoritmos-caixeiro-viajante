@@ -48,13 +48,14 @@ def generate_tsp_instance(name, num_points, file_path):
         file.write("EDGE_WEIGHT_TYPE: EUC_2D\n")
         file.write("NODE_COORD_SECTION\n")
         for i in range(num_points):
-            x, y = random.randint(0, 100), random.randint(0, 100)
+            x, y = random.randint(1, 1000), random.randint(1, 1000)
             file.write(f"{i} {x} {y}\n")
         file.write("EOF\n")
 
 def generate_tsp_instances(file_path):
-    dimensions = [5, 10, 11, 12, 15]
-    for instance_number in range(1, 6):
-        dimension = dimensions[instance_number - 1]
-        filename = f"{file_path}/tsp_instance_{dimension}.tsp"
-        generate_tsp_instance(f"instance_{dimension}", dimension, filename)
+    dimensions = [5, 7, 9, 11]
+    for i in range(0, 4):
+        for instance_number in range(1, 5):
+            dimension = dimensions[instance_number - 1]
+            filename = f"{file_path}/tsp_instance_{dimension}_{i}.tsp"
+            generate_tsp_instance(f"instance_{dimension}", dimension, filename)

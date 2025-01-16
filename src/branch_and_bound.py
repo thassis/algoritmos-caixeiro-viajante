@@ -70,7 +70,7 @@ def bnb_tsp(file):
             if best > node_cost:
                 best = node_cost
                 path = node_path
-                logging.debug(f"Solução encontrada com custo {best}, caminho {path}")
+                # logging.debug(f"Solução encontrada com custo {best}, caminho {path}")
         elif node_bound < best:
             if node_level < n - 1:
                 for k in range(1, n):
@@ -112,7 +112,7 @@ def bfs_tsp(file):
         # logging.debug(f"Caminho: {path} bound: {current_bound}")
 
         if current_bound >= best_cost:
-            logging.debug(f"Poda do nó com caminho {path} devido ao limite inferior ({best_cost})")
+            # logging.debug(f"Poda do nó com caminho {path} devido ao limite inferior ({best_cost})")
             return best_cost, best_path
 
         for k in range(1, n):
