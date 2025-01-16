@@ -2,7 +2,6 @@ import math
 import heapq
 import tracemalloc
 import logging
-import time
 import networkx as nx
 from collections import deque
 from utils import read_tsp_file
@@ -38,7 +37,6 @@ def bound(path, graph, n):
 
 def bnb_tsp(file):
     tracemalloc.start()
-    start_time = time.time()
     
     G = read_tsp_file(file)
     # G = nx.Graph()
@@ -93,39 +91,63 @@ def bnb_tsp(file):
         else:
             logging.debug(f"Poda do nó com caminho {node_path} devido ao limite inferior")
     
-    elapsed_time = time.time() - start_time
     memory_usage, _ = tracemalloc.get_traced_memory()
     tracemalloc.stop()
 
     return best, path, memory_usage
 
 def bfs_tsp(file):
+    def dfs_with_bound(path, graph, n, best_cost, best_path):
+        current_cost = sum(graph[path[i]][path[i + 1]] for i in range(len(path) - 1))
+        logging.debug(f"Próximo caminho: {path} custo: {current_cost}")
+
+        if len(path) == n and graph[path[-1]][0] != math.inf:
+            current_cost += graph[path[-1]][0]
+            logging.debug(f"Caminho completo: {path + [0]} | custo: {current_cost}")
+            if current_cost < best_cost:
+                return current_cost, path + [0]
+            return best_cost, best_path
+
+        current_bound = bound(path, graph, n)
+        logging.debug(f"Caminho: {path} bound: {current_bound}")
+
+        if current_bound >= best_cost:
+            logging.debug(f"Poda do nó com caminho {path} devido ao limite inferior ({best_cost})")
+            return best_cost, best_path
+
+        for k in range(1, n):
+            if k not in path and graph[path[-1]][k] != math.inf:
+                new_cost, new_path = dfs_with_bound(path + [k], graph, n, best_cost, best_path)
+                if new_cost < best_cost:
+                    logging.debug(f"Novo melhor caminho: {new_path} com custo: {new_cost}")
+                    best_cost, best_path = new_cost, new_path
+
+        return best_cost, best_path
+
     tracemalloc.start()
-    
-    graph = read_tsp_file(file)
-    n = len(graph.nodes)
-    queue = deque([(0, 0, [0])])  # (cost, level, path)
-    best = math.inf
-    path = None
 
-    while queue:
-        cost, level, path = queue.popleft()
+    # G = read_tsp_file(file)
+    G = nx.Graph()
+    edges = [
+        (1, 2, 3),
+        (1, 3, 1),
+        (1, 4, 5),
+        (1, 5, 8),
+        (2, 4, 7),
+        (2, 3, 6),
+        (2, 5, 9),
+        (3, 4, 4),
+        (3, 5, 2),
+        (4, 5, 3)
+    ]
+    G.add_weighted_edges_from(edges)
+    graph = nx.adjacency_matrix(G).toarray()
+    n = len(G.nodes)
+    del G
 
-        if level == n - 1:
-            # Check if we can return to the starting node to complete the cycle
-            if graph[path[-1]][0] != math.inf:
-                total_cost = cost + graph[path[-1]][0]
-                if total_cost < best:
-                    best = total_cost
-                    path = path + [0]
-        else:
-            # Expand all possible next nodes that are not in the path
-            for next_node in range(1, n):
-                if next_node not in path and graph[path[-1]][next_node] != math.inf:
-                    new_cost = cost + graph[path[-1]][next_node]
-                    new_path = path + [next_node]
-                    queue.append((new_cost, level + 1, new_path))
- 
+    best_cost, best_path = dfs_with_bound([0], graph, n, math.inf, None)
+
     memory_usage, _ = tracemalloc.get_traced_memory()
     tracemalloc.stop()
-    return best, path, memory_usage
+
+    return best_cost, best_path, memory_usage
