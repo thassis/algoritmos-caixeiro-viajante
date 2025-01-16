@@ -54,7 +54,7 @@ def generate_tsp_instance(name, num_points, file_path):
 
 def generate_tsp_instances(file_path):
     dimensions = [5, 7, 9, 11]
-    for i in range(0, 4):
+    for i in range(0, 10):
         for instance_number in range(1, 5):
             dimension = dimensions[instance_number - 1]
             filename = f"{file_path}/tsp_instance_{dimension}_{i}.tsp"
